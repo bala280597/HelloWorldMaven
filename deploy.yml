@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: maven
+  name: maven
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: maven
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: maven
+    spec:
+      containers:
+      - image: bala2805/bala
+        name: bala
+        ports:
+        - containerPort: 8080
+        resources: {}
+status: {}
