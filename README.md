@@ -3,9 +3,6 @@
 # mvn-hello-world-web-app
 Java Hello World web application created using maven-archetype-webapp
 
-## Blog Post Reference
-https://softwaredev3loper.wordpress.com/2016/02/17/from-zero-to-continuous-delivery/
-
 ## Dependancies
 * git
 * maven
@@ -13,7 +10,7 @@ https://softwaredev3loper.wordpress.com/2016/02/17/from-zero-to-continuous-deliv
 
 ## Eclipse Project setup
 * Use git clone to pull project into workspace directory
- * git clone https://github.com/DEV3L/mvn-hello-world-web-app.git
+ * git clone https://github.com/bala280597/HelloWorldMaven.git
 * Use maven to resolve Eclipse dependencies
  * mvn eclipse:eclipse
 * Import 'mvn-hello-world-web-app' as existing project into Eclipse 
