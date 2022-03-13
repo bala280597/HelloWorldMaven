@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: ${NAMESPACE}
   creationTimestamp: null
   labels:
     app: maven
@@ -18,9 +19,28 @@ spec:
         app: maven
     spec:
       containers:
-      - image: bala2805/bala
+      - image: ${IMAGE_NAME}
         name: bala
         ports:
         - containerPort: 8080
         resources: {}
 status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ${NAMESPACE}
+  creationTimestamp: null
+  labels:
+    app: maven
+  name: maven
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: maven
+  type: LoadBalancer
+status:
+  loadBalancer: {}
