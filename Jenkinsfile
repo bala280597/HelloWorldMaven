@@ -15,6 +15,7 @@ pipeline{
                 def scannerHome = tool 'sonar_scanner'
                 
                  sh """ mvn package"""
+                 sh " ls ./target "
                 
                 withSonarQubeEnv('sonarqube') {
                       
