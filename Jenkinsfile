@@ -19,7 +19,7 @@ pipeline{
                 
                 withSonarQubeEnv('sonarqube') {
                       
-                      sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=HelloWorldMaven -Dsonar.sources=. -Dsonar.java.binaries=./target/"
+                      sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=HelloWorldMaven -Dsonar.sources=src -Dsonar.java.binaries=./target/"
                       
                   }
                 }
