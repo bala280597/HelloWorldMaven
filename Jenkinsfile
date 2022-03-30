@@ -7,7 +7,6 @@ pipeline{
         CREDENTIALS_ID = 'refined-circuit-342805'
         DOCKER_USER = credentials('docker-user')
         DOCKER_PASS = credentials('docker-pass')
-        USER_CREDENTIALS = credentials('jenkins_password')
     }
     stages{
         stage('Sonar Code Analysis') {
@@ -25,6 +24,16 @@ pipeline{
                   }
                 }
             }
+        }
+        
+        stage("Sonar Quality Gate"){
+            steps { script {
+                timeout(time: 2, unit: 'MINUTES') { 
+                def qg = waitForQualityGate(webhookSecretId: 'jenkins_password')    
+                if (qg.status != 'OK') {
+                error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                }}
+            }}
         }
         
         stage("Docker Build"){
@@ -95,11 +104,7 @@ pipeline{
                 }
              }
           }
-        }     
-    }
-    post { 
-        always { 
-            sh """ python Build.py ${USER_CREDENTIALS} bala2805/HelloWorldMaven ${JOB_NAME} ${BUILD_NUMBER} ${currentBuild.durationString.replace(' and counting', '')} """
         }
+        
     }
 }
