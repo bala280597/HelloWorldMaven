@@ -43,20 +43,20 @@ pipeline{
                   sh """ docker login -u $DOCKER_USER -p $DOCKER_PASS """
               if(env.GIT_BRANCH=="main"){
                  sh """
-                        docker build -t bala2805/nodejs:main-${env.BUILD_ID} .
-                        docker push bala2805/nodejs:main-${env.BUILD_ID}
+                        docker build -t bala2805/maven:main-${env.BUILD_ID} .
+                        docker push bala2805/maven:main-${env.BUILD_ID}
                     """
               }
               if(env.GIT_BRANCH.contains("develop")){
                  sh """
-                        docker build -t bala2805/nodejs:dev-${env.BUILD_ID} .
-                        docker push bala2805/nodejs:dev-${env.BUILD_ID}
+                        docker build -t bala2805/maven:dev-${env.BUILD_ID} .
+                        docker push bala2805/maven:dev-${env.BUILD_ID}
                     """
               }
               if(env.GIT_BRANCH.contains("test")) {
                  sh """
-                        docker build -t bala2805/nodejs:test-${env.BUILD_ID} .
-                        docker push bala2805/nodejs:test-${env.BUILD_ID}
+                        docker build -t bala2805/maven:test-${env.BUILD_ID} .
+                        docker push bala2805/maven:test-${env.BUILD_ID}
                     """
                }
               }
@@ -72,7 +72,7 @@ pipeline{
                   sh """ docker login -u $DOCKER_USER -p $DOCKER_PASS """
               if(env.GIT_BRANCH=="main"){
                    sh """
-                        export IMAGE_NAME=bala2805/nodejs:main-${env.BUILD_ID}
+                        export IMAGE_NAME=bala2805/maven:main-${env.BUILD_ID}
                         export NAMESPACE=${env.GIT_BRANCH}
                         cat deploy.yml | envsubst > deployment.yml
                     """
@@ -80,7 +80,7 @@ pipeline{
                if(env.GIT_BRANCH.contains("develop")){
                    sh """
                         docker pull bala2805/nodejs:dev-${env.BUILD_ID}
-                        export IMAGE_NAME=bala2805/nodejs:dev-${env.BUILD_ID}
+                        export IMAGE_NAME=bala2805/maven:dev-${env.BUILD_ID}
                         export NAMESPACE=${env.GIT_BRANCH}
                         cat deploy.yml | envsubst > deployment.yml
                     """
@@ -88,7 +88,7 @@ pipeline{
                  if(env.GIT_BRANCH.contains("test")){
                    sh """
                         docker pull bala2805/nodejs:test-${env.BUILD_ID}
-                        export IMAGE_NAME=bala2805/nodejs:test-${env.BUILD_ID}
+                        export IMAGE_NAME=bala2805/maven:test-${env.BUILD_ID}
                         export NAMESPACE=${env.GIT_BRANCH}
                         cat deploy.yml | envsubst > deployment.yml
                     """
