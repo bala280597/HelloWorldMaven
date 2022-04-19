@@ -1,0 +1,139 @@
+services:
+- docker:dind
+
+stages:
+- build
+- sonar-analysis
+- test
+- docker
+- deploy
+
+build-maven:
+  image: maven:3.6.1-jdk-8
+  stage: build
+  script:
+  - mvn package
+  cache:
+    key: maven-bin-cache
+    paths:
+      - target/
+
+sonar:
+  stage: sonar-analysis
+  needs:
+    - build-maven
+  image: sonarsource/sonar-scanner-cli
+  cache:
+    key: maven-bin-cache
+    paths:
+      - target/
+  variables:
+    SONAR_TOKEN: "$sonar_token"
+    SONAR_HOST_URL: "http://104.198.141.127:9000/"
+    GIT_DEPTH: 0
+  script:
+  - sonar-scanner -Dsonar.projectKey=gitlab_maven -Dsonar.sources=Build.py -Dsonar.qualitygate.wait=true -Dsonar.java.binaries=target
+  allow_failure: true
+
+
+sast:
+  stage: test
+  needs:
+    - build-maven
+include:
+- template: Security/SAST.gitlab-ci.yml
+- template: Security/Secret-Detection.gitlab-ci.yml
+
+build-docker-dev:
+  stage: docker
+  needs:
+    - sonar
+    - secret_detection
+    - spotbugs-sast
+    - bandit-sast
+  image: docker
+  script:
+  - docker login registry.gitlab.com -u "$user" -p "$pass"
+  - docker build -t registry.gitlab.com/bala2805972/maven:dev .
+  - docker push registry.gitlab.com/bala2805972/maven:dev
+
+build-docker-qa:
+  stage: docker
+  needs:
+    - sonar
+    - secret_detection
+    - spotbugs-sast
+    - bandit-sast
+  image: docker
+  script:
+  - docker login registry.gitlab.com -u "$user" -p "$pass"
+  - docker build -t registry.gitlab.com/bala2805972/maven:qa .
+  - docker push registry.gitlab.com/bala2805972/maven:qa
+
+build-docker-prod:
+  stage: docker
+  needs:
+    - sonar
+    - secret_detection
+    - spotbugs-sast
+    - bandit-sast
+  image: docker
+  script:
+  - docker login registry.gitlab.com -u "$user" -p "$pass"
+  - docker build -t registry.gitlab.com/bala2805972/maven:prod .
+  - docker push registry.gitlab.com/bala2805972/maven:prod
+
+pre-deploy-prod:
+  image: ubuntu
+  stage: docker
+  needs:
+    - build-docker-prod
+    - deploy-docker-qa
+    - deploy-docker-dev
+  script:
+    - apt-get update 
+    - apt-get install gettext-base
+    - export IMAGE_NAME=tomcat
+    - export NAMESPACE=test
+    - cat deploy.yml | envsubst > deployment.yml
+  cache:
+    key: k8s-bin-cache-dev
+    paths:
+      - deployment.yml
+
+k8s-prod:
+  image:
+     name: bitnami/kubectl:latest
+     entrypoint: [""]
+  stage: docker
+  needs:
+    - pre-deploy-prod
+    - build-docker-prod
+    - deploy-docker-qa
+    - deploy-docker-dev
+  cache:
+    key: k8s-bin-cache-dev
+    paths:
+      - deployment.yml
+  script:
+  - kubectl config get-contexts
+  - kubectl config use-context bala2805972/maven:bala
+  - kubectl apply -f deployment.yml
+  
+deploy-docker-qa:
+  stage: docker
+  image: docker
+  needs:
+    - build-docker-qa
+  script:
+  - docker login registry.gitlab.com -u "$user" -p "$pass"
+  - docker run -d -p 8080:8080 registry.gitlab.com/bala2805972/maven:qa
+
+deploy-docker-dev:
+  stage: docker
+  image: docker
+  needs:
+    - build-docker-dev
+  script:
+  - docker login registry.gitlab.com -u "$user" -p "$pass"
+  - docker run -d -p 8080:8080 registry.gitlab.com/bala2805972/maven:dev
